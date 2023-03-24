@@ -1,0 +1,22 @@
+Post http://localhost:3000/auth/signup
+Content-Type: application/json
+
+{
+    "email": "star@test.com",
+    "password": "test"
+}
+
+###
+Get http://localhost:3000/auth
+
+###
+
+PATCH http://localhost:3000/auth/1
+Content-Type: application/json
+
+{
+    "email": "star@test.com"
+}
+
+###
+DELETE http://localhost:3000/auth/1
