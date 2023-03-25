@@ -7,15 +7,24 @@ import {
   Patch,
   Post,
   Query,
-  NotFoundException,
+  Session,
 } from '@nestjs/common';
-import { CreateUserDTO } from './dtos/create-user.dto';
+import { Serialize } from 'src/interceptors/serialize.interceptor';
+import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
+import { UserDto } from './dtos/user.dto';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
 
+@Serialize(UserDto)
 @Controller('auth')
 export class UsersController {
-  constructor(public usersService: UsersService) {}
+  constructor(
+    public usersService: UsersService,
+    public authService: AuthService,
+  ) {}
 
   @Get()
   async findAllUsers(@Query('email') email: string) {
@@ -24,24 +33,44 @@ export class UsersController {
     return users;
   }
 
+  @Get('whoami')
+  whoAmI(@CurrentUser() user: User) {
+    return user;
+  }
+
   @Get('/:id')
-  findUser(@Param('id') id: number) {
-    return this.usersService.findOne(id);
+  async findUser(@Param('id') id: number) {
+    return await this.usersService.findOne(id);
+  }
+
+  @Post('signout')
+  signout(@Session() session: any) {
+    session.userId = null;
   }
 
   @Post('signup')
-  createUser(@Body() body: CreateUserDTO) {
+  async createUser(@Body() body: CreateUserDto, @Session() session: any) {
     const { email, password } = body;
-    this.usersService.create(email, password);
+    const user = await this.authService.signUp(email, password);
+    session.userId = user.id;
+    return user;
+  }
+
+  @Post('signin')
+  async signin(@Body() body: CreateUserDto, @Session() session: any) {
+    const { email, password } = body;
+    const user = await this.authService.signIn(email, password);
+    session.userId = user.id;
+    return user;
   }
 
   @Patch('/:id')
-  updateUser(@Param('id') id: number, @Body() body: Partial<User>) {
-    this.usersService.update(id, body);
+  updateUser(@Param('id') id: number, @Body() body: UpdateUserDto) {
+    return this.usersService.update(id, body);
   }
 
   @Delete('/:id')
   removeUser(@Param('id') id: number) {
-    this.usersService.remove(id);
+    return this.usersService.remove(id);
   }
 }

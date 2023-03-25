@@ -2,9 +2,24 @@ Post http://localhost:3000/auth/signup
 Content-Type: application/json
 
 {
-    "email": "star@test.com",
-    "password": "test"
+    "email": "session@test.com",
+    "password": "session"
 }
+
+###
+Get http://localhost:3000/auth/whoami
+
+###
+Post http://localhost:3000/auth/signin
+Content-Type: application/json
+
+{
+    "email": "session@test.com",
+    "password": "session"
+}
+
+###
+Post http://localhost:3000/auth/signout
 
 ###
 Get http://localhost:3000/auth
